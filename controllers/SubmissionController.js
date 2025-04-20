@@ -6,20 +6,10 @@ const CustomAPIError = require("../errors/custom-api.js");
 
 const PROD_MODE = process.env.PROD_MODE === "true";
 
-const checkSubmissionPermissions = (req, participant) => {
+const checkSubmissionPermissions = (req) => {
   if (PROD_MODE && !req.globalConfigurations.submissions_on) {
     throw new CustomAPIError(
       "Submissions Has not started Yet!! Stop Unauthrorized submission request",
-      StatusCodes.FORBIDDEN
-    );
-  }
-  if (
-    PROD_MODE &&
-    participant.daily_submission_count >=
-      req.globalConfigurations.submission_limit_per_day
-  ) {
-    throw new CustomAPIError(
-      "Submission Limit Exceeded. Try Again Tommorrow",
       StatusCodes.FORBIDDEN
     );
   }
@@ -74,7 +64,7 @@ const create = async (req, res) => {
   const payload = req.body;
   const participant = await Participant.findById(req.user.userID);
 
-  checkSubmissionPermissions(req, participant);
+  checkSubmissionPermissions(req);
   payload["slug"] = slugify(
     validated_data.name + " " + (participant.submission_list.length + 1),
     { lower: true }
@@ -82,12 +72,22 @@ const create = async (req, res) => {
 
   payload["original_img_fileName"] = req.file.filename;
 
+  const submissionCount = await Submission.countDocuments({
+    bkash_wallet_number: payload.bkash_wallet_number,
+  });
+
+  if (submissionCount >= req.globalConfigurations.submission_limit) {
+    return res.status(StatusCodes.BAD_REQUEST).json({
+      error: "Submissions limit with this bKash wallet number exceeded.",
+    });
+  }
+
   const new_submission = await Submission.create(payload);
 
   await createRenderImage(new_submission);
 
   participant.submission_list.push(new_submission._id);
-  participant.daily_submission_count += 1;
+  participant.submission_count += 1;
   await participant.save();
 
   return res.status(StatusCodes.CREATED).json({ submission: new_submission });

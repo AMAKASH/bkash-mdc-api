@@ -14,7 +14,7 @@ const ParticipantSchema = new mongoose.Schema(
       { type: mongoose.Schema.Types.ObjectId, ref: "Submission" },
     ],
 
-    daily_submission_count: {
+    submission_count: {
       type: Number,
       default: 0,
     },

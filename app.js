@@ -15,8 +15,8 @@ const logger = require("morgan");
 
 const globalConfigurations = {
   submissions_on: true,
-  submission_limit_per_day: 10,
-  login_attempt_per_day: 15,
+  submission_limit: 3,
+  login_attempt_per_day: 6,
 };
 
 const addGlobalConfigurationsToRequest = (req, res, next) => {
