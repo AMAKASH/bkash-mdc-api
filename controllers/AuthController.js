@@ -24,7 +24,7 @@ const reqOTP = async (req, res) => {
   if (
     PROD_MODE &&
     participant.last_OTP_sent_time &&
-    participant.last_OTP_sent_time.getTime() + 2 * 60 * 1000 > Date.now()
+    participant.last_OTP_sent_time.getTime() + 5 * 60 * 1000 > Date.now()
   ) {
     throw new CustomAPIError(
       "Too many requests. Try again after sometimes",
