@@ -7,12 +7,6 @@ const SubmissionSchema = new mongoose.Schema(
       maxlength: 50,
       required: true,
     },
-
-    contact_info: {
-      type: String,
-      required: true,
-    },
-
     story: {
       type: String,
       required: true,
@@ -22,33 +16,8 @@ const SubmissionSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    original_img_fileName: {
+    image_url: {
       type: String,
-      required: true,
-    },
-
-    gen_img_url: {
-      type: String,
-      required: true,
-    },
-
-    gen_img_fileName: {
-      type: String,
-      required: true,
-    },
-
-    left: {
-      type: Number,
-      required: true,
-    },
-
-    top: {
-      type: Number,
-      required: true,
-    },
-
-    scale: {
-      type: Number,
       required: true,
     },
 

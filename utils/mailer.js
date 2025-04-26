@@ -1,20 +1,32 @@
-import { Resend } from "resend";
+const axios = require("axios");
+
+const API_KEY = process.env.RESEND_API_KEY; // Replace with your Resend API key
 
 const sendEmail = async (to, subject, html) => {
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  try {
+    const response = await axios.post(
+      "https://api.resend.com/emails",
+      {
+        from: "Moments with Maa <no-reply@momentswithmaa.com>",
+        to: [to],
+        subject,
+        html,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${API_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  const { data, error } = await resend.emails.send({
-    from: process.env.FROM_EMAIL,
-    to: [to],
-    subject,
-    html,
-  });
-
-  if (error) {
-    return console.error({ error });
+    console.log("Email sent:", response.data);
+  } catch (error) {
+    console.error(
+      "Error sending email:",
+      error.response?.data || error.message
+    );
   }
-
-  console.log({ data });
 };
 
 module.exports = sendEmail;

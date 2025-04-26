@@ -3,10 +3,8 @@ const Admin = require("../models/admin.js");
 const { StatusCodes } = require("http-status-codes");
 const { UnauthenticatedError, CustomAPIError } = require("../errors");
 const otpGenerator = require("otp-generator");
-const sendMail = require("../utils/mailer");
-const sendSMS = require("../utils/texter");
-const sendEmail = require("../utils/mailer");
-const { loginEmailTemplate } = require("../views/emailTemplate.js");
+const sendEmail = require("../utils/mailer.js");
+const loginEmailTemplate = require("../views/emailTemplate.js");
 
 const PROD_MODE = process.env.PROD_MODE === "true";
 
@@ -43,13 +41,13 @@ const reqOTP = async (req, res) => {
     );
   }
 
-  const otpCode = otpGenerator.generate(6, {
+  const otpCode = otpGenerator.generate(4, {
     upperCaseAlphabets: false,
     lowerCaseAlphabets: false,
     specialChars: false,
   });
   if (!PROD_MODE) {
-    participant.last_OTP = "987654";
+    participant.last_OTP = "9876";
   } else {
     participant.last_OTP = otpCode;
   }
@@ -61,7 +59,7 @@ const reqOTP = async (req, res) => {
   if (PROD_MODE) {
     sendEmail(
       participant.email,
-      "Verification OTP - Bkash",
+      "Verify Your Email - Moments with Maa",
       loginEmailTemplate(otpCode)
     );
   }
@@ -91,7 +89,11 @@ const verifyLogin = async (req, res) => {
   const token = participant.createJWT();
 
   res.status(StatusCodes.OK).json({
-    participant,
+    user: {
+      submission_list: participant.submission_list,
+      submission_count: participant.submission_count,
+      email: participant.email,
+    },
     token,
   });
 };

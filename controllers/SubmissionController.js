@@ -3,6 +3,8 @@ const Participant = require("../models/participant.js");
 const slugify = require("slugify");
 const { StatusCodes } = require("http-status-codes");
 const CustomAPIError = require("../errors/custom-api.js");
+const fs = require("fs");
+const path = require("path");
 
 const PROD_MODE = process.env.PROD_MODE === "true";
 
@@ -62,15 +64,12 @@ const createRenderImage = async (submission) => {
 
 const create = async (req, res) => {
   const payload = req.body;
-  const participant = await Participant.findById(req.user.userID);
 
   checkSubmissionPermissions(req);
   payload["slug"] = slugify(
-    validated_data.name + " " + (participant.submission_list.length + 1),
+    payload.name + " " + payload.bkash_wallet_number + " " + Date.now(),
     { lower: true }
   );
-
-  payload["original_img_fileName"] = req.file.filename;
 
   const submissionCount = await Submission.countDocuments({
     bkash_wallet_number: payload.bkash_wallet_number,
@@ -83,12 +82,6 @@ const create = async (req, res) => {
   }
 
   const new_submission = await Submission.create(payload);
-
-  await createRenderImage(new_submission);
-
-  participant.submission_list.push(new_submission._id);
-  participant.submission_count += 1;
-  await participant.save();
 
   return res.status(StatusCodes.CREATED).json({ submission: new_submission });
 };
@@ -106,10 +99,41 @@ const updateSubmission = async (req, res) => {
   res.status(StatusCodes.ACCEPTED).json(submission);
 };
 
+const uploadImage = async (req, res) => {
+  const { data } = req.body;
+
+  if (!data) {
+    return res.status(400).json({ error: "Missing imageData or filename" });
+  }
+
+  const base64Data = data.replace(/^data:image\/\w+;base64,/, "");
+  const buffer = Buffer.from(base64Data, "base64");
+
+  // Ensure public/uploads exists
+  const uploadDir = path.join("public", "uploads");
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+
+  const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.png`;
+
+  const filePath = path.join(uploadDir, filename);
+
+  fs.writeFile(filePath, buffer, (err) => {
+    if (err) {
+      console.error("Error saving image:", err);
+      return res.status(500).json({ error: "Failed to save image" });
+    }
+    const publicUrl = `/uploads/${filename}`;
+    res.json({ msg: "Image saved successfully", url: publicUrl });
+  });
+};
+
 module.exports = {
   getAll,
   getAllasAdmin,
   getAllUserSubmissions,
   create,
   updateSubmission,
+  uploadImage,
 };
