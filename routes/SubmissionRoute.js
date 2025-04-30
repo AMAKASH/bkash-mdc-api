@@ -7,6 +7,7 @@ const {
   create,
   updateSubmission,
   uploadImage,
+  downloadShortListedSubmissionsZipped,
 } = require("../controllers/SubmissionController");
 const {
   auth,
@@ -15,11 +16,16 @@ const {
 } = require("../middleware/authentication");
 const uploadSingleFile = require("../utils/uploadSingleFile");
 
-router.get("/", allowAuthPassthrough, auth, getAll);
+//router.get("/", allowAuthPassthrough, auth, getAll);
 router.get("/fetch-as-admin", adminAuth, getAllasAdmin);
 router.get("/fetch-as-participant", auth, getAllUserSubmissions);
 router.post("/", create);
 router.post("/upload-img", uploadImage);
 router.put("/:id", adminAuth, updateSubmission);
+router.get(
+  "/download-shortlisted-images",
+  adminAuth,
+  downloadShortListedSubmissionsZipped
+);
 
 module.exports = router;

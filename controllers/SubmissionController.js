@@ -5,6 +5,7 @@ const { StatusCodes } = require("http-status-codes");
 const CustomAPIError = require("../errors/custom-api.js");
 const fs = require("fs");
 const path = require("path");
+const archiver = require("archiver");
 
 const PROD_MODE = process.env.PROD_MODE === "true";
 
@@ -129,6 +130,36 @@ const uploadImage = async (req, res) => {
   });
 };
 
+const downloadShortListedSubmissionsZipped = async (req, res) => {
+  try {
+    // Example: replace this with your DB query
+    const submissions = await Submission.find({ status: "Shortlisted" });
+
+    res.setHeader("Content-Type", "application/zip");
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=MWM_images_till_" +
+        new Date().toDateString() +
+        ".zip"
+    );
+
+    const archive = archiver("zip", { zlib: { level: 9 } });
+    archive.pipe(res);
+
+    for (const record of submissions) {
+      const filePath = path.join("public", record.image_url);
+      console.log(filePath);
+      const imageStream = fs.createReadStream(filePath);
+      archive.append(imageStream, { name: record.slug + ".png" });
+    }
+
+    archive.finalize();
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error creating zip file");
+  }
+};
+
 module.exports = {
   getAll,
   getAllasAdmin,
@@ -136,4 +167,5 @@ module.exports = {
   create,
   updateSubmission,
   uploadImage,
+  downloadShortListedSubmissionsZipped,
 };

@@ -21,6 +21,12 @@ const SubmissionSchema = new mongoose.Schema(
       required: true,
     },
 
+    status: {
+      type: String,
+      enum: ["Approved", "Shortlisted"],
+      default: "Approved",
+    },
+
     slug: {
       type: String,
     },
