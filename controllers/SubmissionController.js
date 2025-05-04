@@ -4,6 +4,7 @@ const slugify = require("slugify");
 const { StatusCodes } = require("http-status-codes");
 const CustomAPIError = require("../errors/custom-api.js");
 const fs = require("fs");
+const fsp = require("fs").promises;
 const path = require("path");
 const archiver = require("archiver");
 
@@ -160,6 +161,15 @@ const downloadShortListedSubmissionsZipped = async (req, res) => {
   }
 };
 
+const getAllGenImageCount = async (req, res) => {
+  const uploadDir = path.join("public", "uploads");
+
+  const files = await fsp.readdir(uploadDir, { withFileTypes: true });
+  const fileCount = files.filter((dirent) => dirent.isFile()).length;
+
+  res.json({ imageGenCount: fileCount });
+};
+
 module.exports = {
   getAll,
   getAllasAdmin,
@@ -168,4 +178,5 @@ module.exports = {
   updateSubmission,
   uploadImage,
   downloadShortListedSubmissionsZipped,
+  getAllGenImageCount,
 };

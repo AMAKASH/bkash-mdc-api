@@ -8,6 +8,7 @@ const {
   updateSubmission,
   uploadImage,
   downloadShortListedSubmissionsZipped,
+  getAllGenImageCount,
 } = require("../controllers/SubmissionController");
 const {
   auth,
@@ -27,5 +28,7 @@ router.get(
   adminAuth,
   downloadShortListedSubmissionsZipped
 );
+
+router.get("/all-gen-images", adminAuth, getAllGenImageCount);
 
 module.exports = router;
