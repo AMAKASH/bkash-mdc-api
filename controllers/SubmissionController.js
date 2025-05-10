@@ -8,6 +8,8 @@ const fsp = require("fs").promises;
 const path = require("path");
 const archiver = require("archiver");
 
+const ignore_limit_list = ["+8801779331155", "01779331155", ""];
+
 const PROD_MODE = process.env.PROD_MODE === "true";
 
 const checkSubmissionPermissions = (req) => {
@@ -77,7 +79,10 @@ const create = async (req, res) => {
     bkash_wallet_number: payload.bkash_wallet_number,
   });
 
-  if (submissionCount >= req.globalConfigurations.submission_limit) {
+  if (
+    submissionCount >= req.globalConfigurations.submission_limit &&
+    !ignore_limit_list.includes(payload.bkash_wallet_number.trim())
+  ) {
     return res.status(StatusCodes.BAD_REQUEST).json({
       error: "Submissions limit with this bKash wallet number exceeded.",
     });
